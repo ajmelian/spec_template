@@ -17,7 +17,7 @@ El directorio `spec/` contiene todos los artefactos SDD. El resto del proyecto d
 **Autor principal:** Aythami Melian Perdomo  
 **Perfil profesional:** Ingeniero de Software PHP especializado en aplicaciones online, APIs, desarrollo seguro, DevSecOps y Spec-Driven Development.  
 **Asistencia técnica:** plantilla elaborada con apoyo de IA generativa bajo dirección, revisión y criterio técnico del autor.  
-**Versión de la plantilla:** 1.0.1  
+**Versión de la plantilla:** 1.0.2  
 **Fecha:** 2026-06-27
 
 Salvo que el proyecto defina otra licencia específica, esta plantilla se entrega como base reutilizable, modificable y adaptable a proyectos propios o profesionales, manteniendo la atribución de autoría cuando se distribuya como plantilla independiente.
@@ -387,72 +387,881 @@ Este registro debe revisarse cuando una feature introduzca cambios en autenticac
 
 ## Flujo recomendado para una feature
 
-1. Crear una carpeta nueva en `spec/features/` usando numeración incremental:
-   - `001-login-api`
-   - `002-registro-usuario`
-   - `003-recuperacion-password`
+El ejemplo de esta sección usa la feature `001-crear-ticket-incidencia` del **Portal de Incidencias**: una aplicación PHP con **CodeIgniter 4**, repositorio en **GitHub**, subida al servidor de desarrollo por **SFTP**, base de datos **MySQL**, pruebas con **PHPUnit** y frontend **HTML5 + Bootstrap 5**.
 
-2. Escribir `spec.md`:
-   - Objetivo.
-   - Alcance.
-   - Fuera de alcance.
-   - Actores.
-   - Requisitos funcionales.
-   - Requisitos no funcionales.
-   - Criterios de aceptación.
+### 1. Crear una carpeta nueva en `spec/features/`
 
-3. Escribir `plan.md`:
-   - Enfoque técnico.
-   - Archivos afectados.
-   - Endpoints.
-   - Modelo de datos.
-   - Servicios.
-   - Validaciones.
-   - Migraciones.
-   - Riesgos técnicos.
+La carpeta debe usar numeración incremental y un nombre corto, expresivo y estable.
 
-4. Escribir `tasks.md`:
-   - Tareas pequeñas.
-   - Verificables.
-   - Marcables como completadas.
-   - Asociables a requisitos y criterios de aceptación.
+Ejemplos de nomenclatura:
 
-5. Escribir `test-plan.md`:
-   - Tests unitarios.
-   - Tests de integración.
-   - Tests de API.
-   - Casos negativos.
-   - Casos de seguridad.
-   - Datos de prueba.
+```text
+spec/features/001-crear-ticket-incidencia/
+spec/features/002-listar-mis-incidencias/
+spec/features/003-cambiar-estado-incidencia/
+spec/features/004-comentar-incidencia/
+```
 
-6. Completar `security-review.md`:
-   - Autenticación.
-   - Autorización.
-   - Validación de entrada.
-   - Gestión de errores.
-   - Rate limiting.
-   - CSRF/CORS si aplica.
-   - Tratamiento de datos sensibles.
-   - Riesgos OWASP.
+Ejemplo real aplicado:
 
-7. Mantener `traceability.md`:
-   - Requisito.
-   - Criterio de aceptación.
-   - Tarea.
-   - Test.
-   - Evidencia.
+```text
+spec/features/001-crear-ticket-incidencia/
+├── spec.md
+├── plan.md
+├── tasks.md
+├── test-plan.md
+├── security-review.md
+├── verification.md
+├── traceability.md
+└── release-notes.md
+```
 
-8. Implementar el código.
+La carpeta `001-crear-ticket-incidencia` representa una única intención funcional: permitir que un usuario autenticado registre una incidencia desde el portal web o desde la API.
 
-9. Completar `verification.md`:
-   - Comandos ejecutados.
-   - Resultado de tests.
-   - Resultado de lint.
-   - Resultado de análisis estático.
-   - Evidencias.
-   - Incidencias detectadas.
+### 2. Escribir `spec.md`
 
-10. Completar `release-notes.md` si la feature llega a entrega.
+El fichero `spec.md` define qué debe hacer la feature, por qué existe y cómo se validará funcionalmente. No debe describir todavía el detalle técnico de implementación salvo que forme parte de una restricción funcional.
+
+Debe contener, como mínimo, estos campos.
+
+#### Objetivo
+
+Describe la intención funcional de la feature.
+
+Ejemplo:
+
+```text
+Permitir que un usuario autenticado cree una nueva incidencia indicando título, descripción y prioridad, quedando registrada en MySQL con estado inicial "abierta" y asociada al usuario creador.
+```
+
+#### Alcance
+
+Define qué sí queda incluido.
+
+Ejemplo:
+
+```text
+- Crear incidencia desde formulario web HTML5 con Bootstrap 5.
+- Crear incidencia mediante endpoint REST POST /api/v1/tickets.
+- Validar título, descripción y prioridad en frontend y backend.
+- Persistir la incidencia en la tabla tickets de MySQL.
+- Asociar la incidencia al usuario autenticado.
+- Devolver confirmación visual en frontend y respuesta JSON en API.
+```
+
+#### Fuera de alcance
+
+Define qué no debe implementarse en esta feature, aunque esté relacionado.
+
+Ejemplo:
+
+```text
+- No se implementa subida de adjuntos.
+- No se implementa asignación automática a técnicos.
+- No se implementa sistema de SLA.
+- No se implementan notificaciones por email.
+- No se implementa edición posterior de la incidencia.
+- No se implementa borrado lógico ni físico de incidencias.
+```
+
+#### Actores
+
+Identifica los usuarios, sistemas o roles implicados.
+
+Ejemplo:
+
+```text
+- Usuario autenticado: crea la incidencia.
+- Técnico de soporte: no interviene en esta feature, pero será consumidor posterior de la incidencia.
+- Administrador: no interviene en esta feature.
+- Sistema: valida, registra y devuelve el resultado de la operación.
+```
+
+#### Requisitos funcionales
+
+Deben ser numerados y verificables.
+
+Ejemplo:
+
+```text
+REQ-001: El usuario autenticado puede acceder al formulario de creación de incidencia.
+REQ-002: El formulario debe solicitar título, descripción y prioridad.
+REQ-003: El sistema debe aceptar únicamente las prioridades baja, media y alta.
+REQ-004: Al enviar datos válidos, el sistema debe crear un registro en la tabla tickets.
+REQ-005: La incidencia debe quedar asociada al identificador del usuario autenticado.
+REQ-006: La incidencia debe crearse con estado inicial abierta.
+REQ-007: El endpoint POST /api/v1/tickets debe devolver HTTP 201 cuando la incidencia se crea correctamente.
+REQ-008: El endpoint debe devolver HTTP 400 cuando el payload sea inválido.
+REQ-009: El endpoint debe devolver HTTP 401 cuando el usuario no esté autenticado.
+```
+
+#### Requisitos no funcionales
+
+Deben indicar restricciones de seguridad, rendimiento, mantenibilidad, compatibilidad o calidad.
+
+Ejemplo:
+
+```text
+NFR-001: La feature debe implementarse en PHP 8.x usando CodeIgniter 4.
+NFR-002: Las validaciones backend deben implementarse con los mecanismos de validación de CodeIgniter 4.
+NFR-003: El formulario debe ser HTML5 válido y usar componentes Bootstrap 5.
+NFR-004: La creación de la incidencia debe completarse en menos de 500 ms en entorno de desarrollo con MySQL local o equivalente.
+NFR-005: La feature debe cubrirse con pruebas PHPUnit.
+NFR-006: No se deben registrar en logs datos sensibles ni contenido completo de la descripción.
+NFR-007: El endpoint debe estar documentado en spec/api/openapi.yaml.
+```
+
+#### Criterios de aceptación
+
+Deben expresar condiciones observables para aceptar o rechazar la feature.
+
+Ejemplo:
+
+```text
+AC-001: Dado un usuario autenticado, cuando accede a /tickets/new, entonces ve un formulario con título, descripción y prioridad.
+AC-002: Dado un usuario autenticado, cuando envía el formulario con datos válidos, entonces se crea una incidencia en MySQL con estado abierta.
+AC-003: Dado un usuario autenticado, cuando envía el formulario sin título, entonces se muestra un mensaje de validación y no se crea la incidencia.
+AC-004: Dado un cliente API autenticado, cuando envía POST /api/v1/tickets con payload válido, entonces recibe HTTP 201 y el identificador del ticket creado.
+AC-005: Dado un cliente API no autenticado, cuando envía POST /api/v1/tickets, entonces recibe HTTP 401.
+AC-006: Dado un cliente API autenticado, cuando envía una prioridad no permitida, entonces recibe HTTP 400.
+AC-007: La ejecución de vendor/bin/phpunit debe finalizar sin errores.
+AC-008: spec/api/openapi.yaml debe incluir el endpoint POST /api/v1/tickets con request, responses y esquema de salida.
+```
+
+### 3. Escribir `plan.md`
+
+El fichero `plan.md` define cómo se implementará la feature. Debe traducir la intención de `spec.md` a decisiones técnicas concretas.
+
+Debe contener, como mínimo, estos campos.
+
+#### Enfoque técnico
+
+Describe la estrategia de implementación.
+
+Ejemplo:
+
+```text
+La feature se implementará siguiendo el patrón MVC de CodeIgniter 4. Se añadirá un controlador web para mostrar y procesar el formulario HTML5/Bootstrap 5, un controlador API para aceptar POST /api/v1/tickets, un servicio TicketService para centralizar la lógica de creación, un modelo TicketModel para persistencia MySQL y una entidad TicketEntity para representar la incidencia.
+
+La validación se aplicará en dos capas: restricciones HTML5 en frontend para mejorar UX y validación obligatoria backend en CodeIgniter 4 como control real de seguridad.
+```
+
+#### Archivos afectados
+
+Lista los ficheros que se prevé crear o modificar.
+
+Ejemplo:
+
+```text
+app/Controllers/Web/TicketController.php
+app/Controllers/Api/V1/TicketController.php
+app/Models/TicketModel.php
+app/Entities/TicketEntity.php
+app/Services/TicketService.php
+app/Database/Migrations/2026-06-27-000001_CreateTicketsTable.php
+app/Views/tickets/new.php
+app/Views/tickets/created.php
+app/Config/Routes.php
+tests/unit/Services/TicketServiceTest.php
+tests/feature/Api/CreateTicketApiTest.php
+spec/api/openapi.yaml
+```
+
+#### Endpoints
+
+Documenta los endpoints afectados.
+
+Ejemplo:
+
+```text
+POST /api/v1/tickets
+
+Request JSON:
+{
+  "title": "No puedo acceder al panel",
+  "description": "Al iniciar sesión aparece un error 500.",
+  "priority": "alta"
+}
+
+Response 201:
+{
+  "id": 123,
+  "title": "No puedo acceder al panel",
+  "priority": "alta",
+  "status": "abierta",
+  "createdAt": "2026-06-27T10:30:00+00:00"
+}
+
+Response 400:
+{
+  "error": "validation_error",
+  "fields": {
+    "title": "El título es obligatorio."
+  }
+}
+```
+
+Rutas web asociadas:
+
+```text
+GET  /tickets/new
+POST /tickets
+```
+
+#### Modelo de datos
+
+Define tablas, campos, relaciones e índices.
+
+Ejemplo:
+
+```text
+Tabla: tickets
+
+Campos:
+- id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY
+- user_id BIGINT UNSIGNED NOT NULL
+- title VARCHAR(150) NOT NULL
+- description TEXT NOT NULL
+- priority ENUM('baja', 'media', 'alta') NOT NULL DEFAULT 'media'
+- status ENUM('abierta', 'en_progreso', 'resuelta', 'cerrada') NOT NULL DEFAULT 'abierta'
+- created_at DATETIME NOT NULL
+- updated_at DATETIME NULL
+- deleted_at DATETIME NULL
+
+Índices:
+- INDEX idx_tickets_user_id (user_id)
+- INDEX idx_tickets_status (status)
+- INDEX idx_tickets_priority (priority)
+
+Relaciones:
+- tickets.user_id referencia al usuario creador.
+```
+
+#### Servicios
+
+Define la lógica de negocio que no debe quedar incrustada en controladores.
+
+Ejemplo:
+
+```text
+TicketService::createTicket(int $userId, array $payload): TicketEntity
+
+Responsabilidades:
+- Normalizar datos de entrada.
+- Validar que la prioridad pertenece al catálogo permitido.
+- Crear la entidad TicketEntity.
+- Persistir mediante TicketModel.
+- Devolver la entidad creada.
+
+No debe:
+- Leer directamente $_POST.
+- Renderizar vistas.
+- Construir respuestas HTTP.
+- Ejecutar consultas SQL manuales fuera de TicketModel.
+```
+
+#### Validaciones
+
+Define reglas frontend y backend.
+
+Ejemplo:
+
+```text
+Frontend HTML5:
+- title: required, maxlength="150"
+- description: required, minlength="10"
+- priority: select obligatorio con valores baja, media, alta
+
+Backend CodeIgniter 4:
+- title: required|min_length[5]|max_length[150]
+- description: required|min_length[10]|max_length[5000]
+- priority: required|in_list[baja,media,alta]
+
+Normalización:
+- title: trim.
+- description: trim.
+- priority: lowercase.
+```
+
+#### Migraciones
+
+Define los cambios de base de datos.
+
+Ejemplo:
+
+```text
+Crear migración:
+app/Database/Migrations/2026-06-27-000001_CreateTicketsTable.php
+
+Comando de aplicación:
+php spark migrate
+
+Comando de reversión en desarrollo:
+php spark migrate:rollback
+
+Consideraciones:
+- La migración no debe destruir datos existentes.
+- Si la tabla tickets ya existe, revisar compatibilidad antes de aplicar.
+- El rollback solo se ejecutará en desarrollo si no hay datos relevantes.
+```
+
+#### Riesgos técnicos
+
+Identifica riesgos de implementación antes de tocar código.
+
+Ejemplo:
+
+```text
+RISK-001: duplicar lógica de validación entre controlador web y controlador API.
+Mitigación: centralizar reglas en TicketValidationRules o método privado reutilizable.
+
+RISK-002: crear incidencia sin usuario autenticado por error de control de sesión.
+Mitigación: aplicar filtro de autenticación en rutas web y API.
+
+RISK-003: divergencia entre implementación y OpenAPI.
+Mitigación: actualizar spec/api/openapi.yaml en la misma tarea que el endpoint.
+
+RISK-004: subida SFTP incompleta al servidor de desarrollo.
+Mitigación: checklist de despliegue y smoke test posterior.
+```
+
+### 4. Escribir `tasks.md`
+
+El fichero `tasks.md` convierte el plan en trabajo ejecutable. Las tareas deben ser pequeñas, verificables y vinculadas a requisitos o criterios de aceptación.
+
+Debe contener, como mínimo, estos campos.
+
+#### Tareas pequeñas
+
+Ejemplo:
+
+```text
+TASK-001: Crear migración MySQL para tabla tickets.
+TASK-002: Crear TicketEntity.
+TASK-003: Crear TicketModel.
+TASK-004: Crear TicketService::createTicket().
+TASK-005: Crear controlador API app/Controllers/Api/V1/TicketController.php.
+TASK-006: Crear rutas API en app/Config/Routes.php.
+TASK-007: Crear controlador web app/Controllers/Web/TicketController.php.
+TASK-008: Crear vista app/Views/tickets/new.php con HTML5 y Bootstrap 5.
+TASK-009: Añadir validaciones frontend HTML5.
+TASK-010: Añadir validaciones backend CodeIgniter 4.
+TASK-011: Crear tests PHPUnit unitarios de TicketService.
+TASK-012: Crear tests PHPUnit de endpoint POST /api/v1/tickets.
+TASK-013: Actualizar spec/api/openapi.yaml.
+TASK-014: Ejecutar pruebas y documentar resultados en verification.md.
+```
+
+#### Verificables
+
+Cada tarea debe indicar cómo se comprueba.
+
+Ejemplo:
+
+```text
+TASK-001 se verifica ejecutando php spark migrate y comprobando que existe la tabla tickets en MySQL.
+TASK-004 se verifica con tests unitarios de TicketService.
+TASK-005 se verifica con test de API CreateTicketApiTest.
+TASK-008 se verifica accediendo a /tickets/new en servidor de desarrollo.
+TASK-013 se verifica revisando que openapi.yaml contiene POST /api/v1/tickets.
+```
+
+#### Marcables como completadas
+
+Ejemplo:
+
+```text
+- [x] TASK-001: Crear migración MySQL para tabla tickets.
+- [x] TASK-002: Crear TicketEntity.
+- [x] TASK-003: Crear TicketModel.
+- [ ] TASK-004: Crear TicketService::createTicket().
+- [ ] TASK-005: Crear controlador API.
+- [ ] TASK-006: Crear rutas API.
+- [ ] TASK-007: Crear controlador web.
+- [ ] TASK-008: Crear vista Bootstrap 5.
+- [ ] TASK-009: Añadir validaciones frontend.
+- [ ] TASK-010: Añadir validaciones backend.
+- [ ] TASK-011: Crear tests unitarios.
+- [ ] TASK-012: Crear tests de API.
+- [ ] TASK-013: Actualizar OpenAPI.
+- [ ] TASK-014: Completar verification.md.
+```
+
+#### Asociables a requisitos y criterios de aceptación
+
+Ejemplo:
+
+```text
+TASK-001 -> REQ-004, REQ-006, AC-002
+TASK-004 -> REQ-004, REQ-005, REQ-006, AC-002
+TASK-005 -> REQ-007, REQ-008, REQ-009, AC-004, AC-005, AC-006
+TASK-008 -> REQ-001, REQ-002, AC-001
+TASK-010 -> REQ-003, AC-003, AC-006
+TASK-011 -> NFR-005, AC-007
+TASK-013 -> NFR-007, AC-008
+```
+
+### 5. Escribir `test-plan.md`
+
+El fichero `test-plan.md` define cómo se validará la feature antes de cerrarla.
+
+Debe contener, como mínimo, estos campos.
+
+#### Tests unitarios
+
+Ejemplo:
+
+```text
+TicketServiceTest::testCreateTicketWithValidPayloadCreatesTicket()
+- Valida que TicketService crea una incidencia con datos válidos.
+
+TicketServiceTest::testCreateTicketNormalizesPayload()
+- Valida trim de título y descripción.
+- Valida normalización lowercase de prioridad.
+
+TicketServiceTest::testCreateTicketRejectsInvalidPriority()
+- Valida que una prioridad fuera de catálogo no se acepta.
+```
+
+#### Tests de integración
+
+Ejemplo:
+
+```text
+TicketModelTest::testTicketIsPersistedInMysql()
+- Inserta una incidencia en la base de datos de pruebas MySQL.
+- Comprueba que user_id, title, priority y status se guardan correctamente.
+
+TicketMigrationTest::testTicketsTableExists()
+- Comprueba que la migración crea la tabla tickets con los campos esperados.
+```
+
+#### Tests de API
+
+Ejemplo:
+
+```text
+CreateTicketApiTest::testAuthenticatedUserCanCreateTicket()
+- POST /api/v1/tickets con token/sesión válida.
+- Espera HTTP 201.
+- Espera JSON con id, title, priority, status y createdAt.
+
+CreateTicketApiTest::testUnauthenticatedUserCannotCreateTicket()
+- POST /api/v1/tickets sin autenticación.
+- Espera HTTP 401.
+
+CreateTicketApiTest::testInvalidPayloadReturnsValidationError()
+- POST /api/v1/tickets sin title.
+- Espera HTTP 400.
+- Espera estructura JSON de errores por campo.
+```
+
+#### Casos negativos
+
+Ejemplo:
+
+```text
+- title vacío: debe fallar.
+- title superior a 150 caracteres: debe fallar.
+- description inferior a 10 caracteres: debe fallar.
+- priority = urgente: debe fallar.
+- usuario no autenticado: debe fallar.
+- payload JSON malformado: debe fallar sin error 500.
+```
+
+#### Casos de seguridad
+
+Ejemplo:
+
+```text
+- Intento de crear ticket sin sesión activa.
+- Intento de enviar HTML o JavaScript en title.
+- Intento de enviar payload con user_id manipulando el propietario.
+- Intento de superar longitud máxima en campos.
+- Validación de que no se escribe la descripción completa en logs.
+```
+
+#### Datos de prueba
+
+Ejemplo:
+
+```text
+Usuario autenticado:
+- id: 10
+- email: usuario.demo@example.com
+- rol: user
+
+Payload válido:
+{
+  "title": "No puedo acceder al panel",
+  "description": "Al iniciar sesión aparece un error 500.",
+  "priority": "alta"
+}
+
+Payload inválido:
+{
+  "title": "",
+  "description": "Error",
+  "priority": "urgente"
+}
+
+Base de datos:
+- Esquema: incidencias_test
+- Seeds: UserSeeder, TicketSeeder opcional
+```
+
+### 6. Completar `security-review.md`
+
+El fichero `security-review.md` documenta la revisión de seguridad específica de la feature.
+
+Debe contener, como mínimo, estos campos.
+
+#### Autenticación
+
+Ejemplo:
+
+```text
+SEC-001: Las rutas GET /tickets/new y POST /tickets requieren usuario autenticado.
+SEC-002: El endpoint POST /api/v1/tickets requiere autenticación API o sesión válida según la estrategia definida en constitution/security.md.
+SEC-003: Si no existe usuario autenticado, la API devuelve HTTP 401 y la web redirige a login.
+```
+
+#### Autorización
+
+Ejemplo:
+
+```text
+SEC-004: Un usuario solo puede crear incidencias en su propio nombre.
+SEC-005: El backend ignora cualquier user_id recibido en el payload.
+SEC-006: El user_id se obtiene exclusivamente desde la sesión o contexto autenticado.
+```
+
+#### Validación de entrada
+
+Ejemplo:
+
+```text
+SEC-007: title se valida como obligatorio, longitud 5-150 y texto plano.
+SEC-008: description se valida como obligatoria, longitud 10-5000.
+SEC-009: priority se valida mediante lista cerrada: baja, media, alta.
+SEC-010: Los campos no reconocidos del payload no deben modificar propiedades internas.
+```
+
+#### Gestión de errores
+
+Ejemplo:
+
+```text
+SEC-011: Los errores de validación devuelven HTTP 400 sin stack trace.
+SEC-012: Los errores de autenticación devuelven HTTP 401.
+SEC-013: Los errores internos devuelven mensaje genérico.
+SEC-014: Los logs técnicos no deben incluir secretos, cookies, tokens ni descripciones completas de incidencias.
+```
+
+#### Rate limiting
+
+Ejemplo:
+
+```text
+SEC-015: POST /api/v1/tickets debe quedar protegido por rate limiting si la API queda expuesta fuera de la red interna.
+SEC-016: Límite inicial recomendado: 30 creaciones por usuario cada 10 minutos en desarrollo/preproducción.
+SEC-017: Los excesos devuelven HTTP 429.
+```
+
+#### CSRF/CORS si aplica
+
+Ejemplo:
+
+```text
+SEC-018: El formulario web POST /tickets debe usar protección CSRF de CodeIgniter 4.
+SEC-019: El endpoint API no debe depender de CSRF si usa autenticación por token y no por cookie de navegador.
+SEC-020: CORS debe permitir únicamente los orígenes definidos en .env para entorno de desarrollo.
+```
+
+#### Tratamiento de datos sensibles
+
+Ejemplo:
+
+```text
+SEC-021: La descripción de la incidencia puede contener información sensible introducida por el usuario.
+SEC-022: No se debe registrar description completa en logs.
+SEC-023: No se debe exponer información de otros usuarios en respuestas API.
+SEC-024: Los datos se almacenan en MySQL conforme a la política de retención del proyecto.
+```
+
+#### Riesgos OWASP
+
+Ejemplo:
+
+```text
+API1 Broken Object Level Authorization:
+- Riesgo: manipulación de user_id para crear incidencias asociadas a otro usuario.
+- Control: user_id siempre se toma del contexto autenticado.
+
+API3 Broken Object Property Level Authorization:
+- Riesgo: asignación masiva de campos no permitidos.
+- Control: allowlist estricta de title, description y priority.
+
+API4 Unrestricted Resource Consumption:
+- Riesgo: creación masiva de tickets.
+- Control: rate limiting.
+
+API8 Security Misconfiguration:
+- Riesgo: CORS permisivo o errores con stack trace.
+- Control: configuración por entorno y errores genéricos en producción.
+
+XSS:
+- Riesgo: title o description con HTML/JavaScript.
+- Control: escape en vistas y validación/sanitización adecuada.
+```
+
+### 7. Mantener `traceability.md`
+
+El fichero `traceability.md` permite auditar qué requisito queda cubierto por qué tarea, qué prueba y qué evidencia.
+
+Debe contener, como mínimo, estos campos.
+
+#### Requisito
+
+Ejemplo:
+
+```text
+REQ-004: Al enviar datos válidos, el sistema debe crear un registro en la tabla tickets.
+```
+
+#### Criterio de aceptación
+
+Ejemplo:
+
+```text
+AC-002: Dado un usuario autenticado, cuando envía el formulario con datos válidos, entonces se crea una incidencia en MySQL con estado abierta.
+AC-004: Dado un cliente API autenticado, cuando envía POST /api/v1/tickets con payload válido, entonces recibe HTTP 201 y el identificador del ticket creado.
+```
+
+#### Tarea
+
+Ejemplo:
+
+```text
+TASK-001: Crear migración MySQL para tabla tickets.
+TASK-003: Crear TicketModel.
+TASK-004: Crear TicketService::createTicket().
+TASK-005: Crear controlador API.
+```
+
+#### Test
+
+Ejemplo:
+
+```text
+TEST-001: TicketServiceTest::testCreateTicketWithValidPayloadCreatesTicket()
+TEST-004: CreateTicketApiTest::testAuthenticatedUserCanCreateTicket()
+TEST-005: TicketModelTest::testTicketIsPersistedInMysql()
+```
+
+#### Evidencia
+
+Ejemplo:
+
+```text
+EVID-001: Captura o salida de vendor/bin/phpunit con resultado OK.
+EVID-002: Registro creado en tabla tickets del esquema incidencias_test.
+EVID-003: Respuesta HTTP 201 de POST /api/v1/tickets en entorno de desarrollo.
+EVID-004: Revisión de spec/api/openapi.yaml con path documentado.
+```
+
+Ejemplo de tabla de trazabilidad:
+
+```text
+| Requisito | Criterio | Tarea | Test | Evidencia |
+|-----------|----------|-------|------|-----------|
+| REQ-004 | AC-002, AC-004 | TASK-001, TASK-003, TASK-004, TASK-005 | TEST-001, TEST-004, TEST-005 | EVID-001, EVID-002, EVID-003 |
+| REQ-003 | AC-006 | TASK-010 | TEST-003, TEST-006 | EVID-001 |
+| NFR-007 | AC-008 | TASK-013 | Revisión documental | EVID-004 |
+```
+
+### 8. Implementar el código
+
+La implementación debe hacerse después de completar `spec.md`, `plan.md`, `tasks.md`, `test-plan.md` y `security-review.md`.
+
+Ejemplo real de ejecución:
+
+```text
+Rama GitHub:
+feature/JIRA-123-crear-ticket-incidencia
+
+Orden recomendado:
+1. Crear migración MySQL.
+2. Crear entidad, modelo y servicio.
+3. Crear tests unitarios de servicio.
+4. Crear controlador API y tests de API.
+5. Crear controlador web y vista HTML5/Bootstrap 5.
+6. Actualizar rutas.
+7. Actualizar OpenAPI.
+8. Ejecutar PHPUnit.
+9. Subir rama a GitHub.
+10. Abrir Pull Request hacia develop.
+11. Desplegar en servidor de desarrollo por SFTP tras revisión o aprobación.
+```
+
+Regla operativa:
+
+```text
+No se debe implementar una tarea que no esté descrita en tasks.md.
+Si durante la implementación aparece una necesidad nueva, primero se actualiza spec/ y después se modifica el código.
+```
+
+### 9. Completar `verification.md`
+
+El fichero `verification.md` documenta cómo se ha comprobado que la feature cumple la especificación.
+
+Debe contener, como mínimo, estos campos.
+
+#### Comandos ejecutados
+
+Ejemplo:
+
+```text
+composer install
+php spark migrate --all
+php spark db:seed TestSeeder
+vendor/bin/phpunit
+php spark serve --host 0.0.0.0 --port 8080
+```
+
+Comprobación manual en servidor de desarrollo tras subida SFTP:
+
+```text
+URL: https://dev.incidencias.example.com/tickets/new
+Acción: crear incidencia con usuario demo.
+Resultado esperado: mensaje de confirmación y ticket visible en listado.
+```
+
+#### Resultado de tests
+
+Ejemplo:
+
+```text
+PHPUnit 11.x
+Tests: 18
+Assertions: 64
+Failures: 0
+Errors: 0
+Skipped: 0
+Resultado: OK
+```
+
+#### Resultado de lint
+
+Ejemplo:
+
+```text
+php -l app/Services/TicketService.php: No syntax errors detected
+php -l app/Controllers/Api/V1/TicketController.php: No syntax errors detected
+php -l app/Controllers/Web/TicketController.php: No syntax errors detected
+php -l app/Models/TicketModel.php: No syntax errors detected
+Resultado: OK
+```
+
+#### Resultado de análisis estático
+
+Ejemplo:
+
+```text
+Herramienta: PHPStan o Psalm, si el proyecto la tiene configurada.
+Comando: vendor/bin/phpstan analyse app tests
+Resultado: sin errores de nivel configurado.
+
+Si el proyecto todavía no tiene análisis estático:
+Resultado: No aplica en esta versión.
+Acción pendiente: registrar incorporación de PHPStan/Psalm en roadmap técnico.
+```
+
+#### Evidencias
+
+Ejemplo:
+
+```text
+EVID-001: salida completa de vendor/bin/phpunit almacenada en verification.md.
+EVID-002: captura o registro de respuesta HTTP 201 de POST /api/v1/tickets.
+EVID-003: comprobación en MySQL de registro creado en tickets.
+EVID-004: revisión de formulario /tickets/new en servidor de desarrollo.
+EVID-005: Pull Request en GitHub: feature/JIRA-123-crear-ticket-incidencia -> develop.
+EVID-006: subida SFTP completada en /var/www/dev-incidencias/.
+```
+
+#### Incidencias detectadas
+
+Ejemplo:
+
+```text
+INC-001: El formulario web permitía enviar descripción inferior a 10 caracteres.
+Estado: corregido.
+Acción: añadido minlength="10" en HTML5 y regla min_length[10] en backend.
+
+INC-002: openapi.yaml no incluía respuesta 401.
+Estado: corregido.
+Acción: añadida respuesta 401 al endpoint POST /api/v1/tickets.
+```
+
+### 10. Completar `release-notes.md` si la feature llega a entrega
+
+El fichero `release-notes.md` resume el cambio en lenguaje comprensible para revisión, despliegue o entrega.
+
+Ejemplo:
+
+```text
+# Release notes — 001-crear-ticket-incidencia
+
+## Resumen
+
+Se añade la capacidad de crear incidencias desde el portal web y desde la API REST.
+
+## Cambios funcionales
+
+- Nuevo formulario web /tickets/new con HTML5 y Bootstrap 5.
+- Nuevo endpoint POST /api/v1/tickets.
+- Creación de incidencias con estado inicial abierta.
+- Validación de título, descripción y prioridad.
+
+## Cambios técnicos
+
+- Nueva tabla MySQL tickets.
+- Nuevo TicketModel.
+- Nuevo TicketEntity.
+- Nuevo TicketService.
+- Nuevos controladores Web y API.
+- Nuevas pruebas PHPUnit.
+- Contrato OpenAPI actualizado.
+
+## Seguridad
+
+- Requiere usuario autenticado.
+- user_id se obtiene del contexto autenticado, no del payload.
+- Validación backend obligatoria.
+- Protección CSRF en formulario web.
+- Rate limiting previsto para API expuesta.
+
+## Despliegue
+
+- Rama GitHub: feature/JIRA-123-crear-ticket-incidencia.
+- Destino inicial: servidor de desarrollo.
+- Método: SFTP.
+- Requiere ejecutar php spark migrate.
+
+## Rollback
+
+- Revertir Pull Request o commit en rama develop.
+- Restaurar versión anterior por SFTP.
+- Ejecutar php spark migrate:rollback solo si se confirma que no hay datos relevantes que conservar en desarrollo.
+
+## Verificación
+
+- PHPUnit completado sin errores.
+- Smoke test web completado.
+- Smoke test API completado.
+- OpenAPI revisado.
+```
 
 ## Convención de trazabilidad
 
