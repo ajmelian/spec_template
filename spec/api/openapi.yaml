@@ -1,0 +1,82 @@
+openapi: 3.0.3
+info:
+  title: <Nombre de la API>
+  version: 0.1.0
+  description: >
+    Contrato OpenAPI del proyecto. Mantener actualizado con cada feature
+    que cree, modifique o depreque endpoints.
+servers:
+  - url: https://api.example.com/api/v1
+    description: Produccion
+  - url: https://staging-api.example.com/api/v1
+    description: Staging
+tags:
+  - name: Health
+    description: Estado del servicio
+paths:
+  /health:
+    get:
+      tags:
+        - Health
+      summary: Comprueba el estado basico de la API
+      operationId: getHealth
+      responses:
+        '200':
+          description: Servicio disponible
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HealthResponse'
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+    apiKeyAuth:
+      type: apiKey
+      in: header
+      name: X-API-Key
+  schemas:
+    HealthResponse:
+      type: object
+      required:
+        - status
+      properties:
+        status:
+          type: string
+          example: ok
+        version:
+          type: string
+          example: 0.1.0
+    ErrorResponse:
+      type: object
+      required:
+        - error
+      properties:
+        error:
+          type: object
+          required:
+            - code
+            - message
+          properties:
+            code:
+              type: string
+              example: VALIDATION_ERROR
+            message:
+              type: string
+              example: The request is invalid.
+            correlationId:
+              type: string
+              example: req_123
+            details:
+              type: array
+              items:
+                type: object
+                properties:
+                  field:
+                    type: string
+                  reason:
+                    type: string
+security:
+  - bearerAuth: []
